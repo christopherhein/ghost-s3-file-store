@@ -10,6 +10,7 @@ This plugin allows you to use S3 as a file store for your ghost installation. It
 
 In your ghost `config.js` setup the necessary blocks of information. This includes setting up an `aws` key for each environment as so:
 
+    fileStore: 'ghost-s3-file-store',
     aws: {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -18,13 +19,40 @@ In your ghost `config.js` setup the necessary blocks of information. This includ
       assetHost: proccess.env.AWS_ASSET_HOST # Optional
     }
 
-Then all you need to do is open up the `core/server/storage/index.js` file and change
+Then all you need to do is open up the `core/server/storage/index.js` file and change it to look like this:
 
-    storageChoice = 'local-file-store';
+    var errors  = require('../errors'),
+    config  = require('../config'),
+    storage = {}; 
 
-to
+    function getStorage(storageChoice) {
+        // TODO: this is where the check for storage apps should go
+        // Local file system is the default.  Fow now that is all we support.
+        storageChoice = config.fileStore;
 
-    storageChoice = 's3-file-store';
+        if (storage[storageChoice]) {
+            return storage[storageChoice];
+        }   
+
+        try {
+            // TODO: determine if storage has all the necessary methods.
+            storage[storageChoice] = require('./' + storageChoice);
+        } catch (e) {
+            try {
+                storage[storageChoice] = require(storageChoice);
+            } catch (e) {
+                errors.logError(e);
+            }   
+        }   
+
+        // Instantiate and cache the storage module instance.
+        storage[storageChoice] = new storage[storageChoice]();
+
+        return storage[storageChoice];
+    }
+
+    module.exports.getStorage = getStorage;
+
 
 ## Questions
 

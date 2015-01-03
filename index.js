@@ -5,15 +5,15 @@ var express   = require('express'),
     path      = require('path'),
     util      = require('util'),
     Promise   = require('bluebird'),
-    errors    = require('../errors'),
-    config    = require('../config'),
-    utils     = require('../utils'),
-    baseStore = require('./base'),
+    errors    = require('../../core/server/errors'),
+    config    = require('../../core/server/config'),
+    utils     = require('../..//core/server/utils'),
+    baseStore = require('../../core/server/storage/base'),
     AWS       = require('aws-sdk'),
     awsConfig,
     s3;
 
-function S3FileStore() {
+function GhostS3FileStore() {
   awsConfig = config.aws;
   AWS.config.update(awsConfig);
   
@@ -25,13 +25,13 @@ function S3FileStore() {
   });
   Promise.promisifyAll(s3);
 }
-util.inherits(S3FileStore, baseStore);
+util.inherits(GhostS3FileStore, baseStore);
 
 // ### Save
 // Saves the image to storage (the file system)
 // - image is the express image object
 // - returns a promise which ultimately returns the full url to the uploaded image
-S3FileStore.prototype.save = function (image) {
+GhostS3FileStore.prototype.save = function (image) {
     var targetDir = this.getTargetDir(),
         awsPath = awsConfig.assetHost ? awsConfig.assetHost : 'https://' + awsConfig.bucket + '.s3.amazonaws.com/',
         targetFilename;
@@ -56,7 +56,7 @@ S3FileStore.prototype.save = function (image) {
     });
 };
 
-S3FileStore.prototype.exists = function (filename) {
+GhostS3FileStore.prototype.exists = function (filename) {
   return new Promise(function (resolve) {
     fs.exists(filename, function (exists) {
       resolve(exists);
@@ -65,11 +65,11 @@ S3FileStore.prototype.exists = function (filename) {
 };
 
 // middleware for serving the files
-S3FileStore.prototype.serve = function () {
+GhostS3FileStore.prototype.serve = function () {
   // a no-op, these are absolute URLs
   return function (req, res, next) {
     next();
   };
 };
 
-module.exports = S3FileStore;
+module.exports = GhostS3FileStore;
