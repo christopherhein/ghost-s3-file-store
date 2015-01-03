@@ -1,11 +1,14 @@
 {
   "name": "ghost-s3-file-store",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Configures Ghost to allow for files to be uploaded to AWS S3 for hosting rather then living on the file system",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/christopherhein/ghost-s3-file-store.git"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1.4"
   },
   "keywords": [
     "ghost",
